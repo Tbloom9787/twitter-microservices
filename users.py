@@ -1,5 +1,6 @@
 from flask import Flask
-from flask import request, jsonify, g
+from flask import Flask, request, jsonify, g
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 
 app = Flask(__name__)
@@ -40,7 +41,28 @@ def init_db():
             db.cursor().executescript(f.read())
         db.commit()
 
-@app.route('/users/', methods=['GET'])
+@app.route('/userlist', methods=['GET'])
 def users_all():
     all_users = query_db('SELECT * FROM users;')
     return jsonify(all_users)
+
+@app.route('/users', methods=['POST'])
+def createUser():
+    try:
+        query_params = request.get_json()
+        username = query_params['username']
+        password = query_params['password']
+        password = generate_password_hash(password)
+        email = query_params['email']
+        db = get_db()
+        query_db('INSERT INTO users(username,password,email) VALUES (?,?,?);',(username,password,email))
+        db.commit()
+        response = jsonify({"status": "created" })
+        response.status_code = 201
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
+    except Exception:
+        response = jsonify({"status": "Bad request" })
+        response.status_code = 400
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
