@@ -1,6 +1,5 @@
 -- $ sqlite3 microservices.db < schema.sql
 
-PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
@@ -27,8 +26,17 @@ CREATE TABLE tweets (
 );
 
 INSERT INTO users(username,password,email) VALUES ('Testing','Password123','sample@gmail.com');
+INSERT INTO users(username,password,email) VALUES ('Donald Trump','Billions','president@gmail.com');
+INSERT INTO users(username,password,email) VALUES ('Joe Biden','Mypetfly','joebidens@gmail.com');
+INSERT INTO users(username,password,email) VALUES ('Postman','racecar97','postmanDB@gmail.com');
+INSERT INTO users(username,password,email) VALUES ('admin','admin','admin@gmail.com');
+
 
 INSERT INTO followers(username,follower) VALUES ('Postman', 'Testing');
+INSERT INTO followers(username,follower) VALUES ('Postman', 'Joe Biden');
+INSERT INTO followers(username,follower) VALUES ('Postman', 'Donald Trump');
+INSERT INTO followers(username,follower) VALUES ('Donald Trump', 'Postman');
+
 
 INSERT INTO tweets(text,timestamp,author) VALUES ('Cheese and biscuits cream cheese feta emmental pepper jack hard cheese cheeseburger lancashire','2020-05-09 07:34:28','Donald Trump');
 INSERT INTO tweets(text,timestamp,author) VALUES ('Tootsie roll tootsie roll icing soufflé topping fruitcake carrot cake chocolate cake candy.','2020-05-09 07:34:35','Donald Trump');

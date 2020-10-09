@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 
 app = Flask(__name__)
-# app.config.from_envvar('APP_CONFIG')
+app.config.from_envvar('APP_CONFIG')
 
 def make_dicts(cursor, row):
     return dict((cursor.description[idx][0], value)
@@ -14,7 +14,7 @@ def make_dicts(cursor, row):
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect('microservices.db')
+        db = g._database = sqlite3.connect(app.config['DATABASE'])
         db.row_factory = make_dicts
     return db
 
@@ -45,6 +45,11 @@ def init_db():
 def users_all():
     all_users = query_db('SELECT * FROM users;')
     return jsonify(all_users)
+
+@app.route('/followerlist', methods=['GET'])
+def followers_all():
+    all_followers = query_db('SELECT * FROM followers;')
+    return jsonify(all_followers)
 
 @app.route('/users', methods=['POST'])
 def createUser():
