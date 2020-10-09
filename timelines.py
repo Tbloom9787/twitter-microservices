@@ -47,14 +47,43 @@ def users_all():
     all_users = query_db('SELECT * FROM users;')
     return jsonify(all_users)
 
+@app.route('/followerlist', methods=['GET'])
+def followers_all():
+    all_followers = query_db('SELECT * FROM followers;')
+    return jsonify(all_followers)
+
 @app.route('/userTimeline', methods = ['GET'])
 def getUserTimeline():
     try:
         query_params = request.get_json()
-        author = query_params['author']
+        user = query_params['username']
 
-        db = get_db()
-        tweets = query_db('SELECT * FROM tweets WHERE author = ? ORDER BY timestamp DESC LIMIT 25;', [author])
+        tweets = query_db('SELECT text, author, timestamp FROM tweets WHERE author = ? ORDER BY timestamp DESC LIMIT 25;', [user])
+        return jsonify(tweets)
+    except Exception:
+        response = jsonify({"status": "Bad Request" })
+        response.status_code = 400
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
+
+@app.route('/publicTimeline',methods=['GET'])
+def getPublicTimeline():
+    try:
+        tweets = query_db('SELECT text, author, timestamp FROM tweets ORDER BY timestamp DESC LIMIT 25;')
+        return jsonify(tweets)
+    except Exception:
+        response = jsonify({"status": "Bad Request" })
+        response.status_code = 400
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
+
+@app.route('/homeTimeline', methods = ['GET'])
+def getHomeTimeline():
+    try:
+        query_params = request.get_json()
+        user = query_params['username']
+
+        tweets = query_db('SELECT text, author, timestamp FROM tweets WHERE author IN (SELECT follower FROM followers WHERE username = ?) ORDER BY timestamp DESC LIMIT 25;', [user])
         return jsonify(tweets)
     except Exception:
         response = jsonify({"status": "Bad Request" })
