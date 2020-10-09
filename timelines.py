@@ -1,0 +1,84 @@
+from flask import Flask
+from flask import Flask, request, jsonify, g
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
+import sqlite3
+
+app = Flask(__name__)
+# app.config.from_envvar('APP_CONFIG')
+
+def make_dicts(cursor, row):
+    return dict((cursor.description[idx][0], value)
+                for idx, value in enumerate(row))
+
+
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect('microservices.db')
+        db.row_factory = make_dicts
+    return db
+
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+
+def query_db(query, args=(), one=False):
+    cur = get_db().execute(query, args)
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
+
+
+@app.cli.command('init')
+def init_db():
+    with app.app_context():
+        db = get_db()
+        with app.open_resource('schema.sql', mode='r') as f:
+            db.cursor().executescript(f.read())
+        db.commit()
+
+@app.route('/userlist', methods=['GET'])
+def users_all():
+    all_users = query_db('SELECT * FROM users;')
+    return jsonify(all_users)
+
+@app.route('/userTimeline', methods = ['GET'])
+def getUserTimeline():
+    try:
+        query_params = request.get_json()
+        author = query_params['author']
+
+        db = get_db()
+        tweets = query_db('SELECT * FROM tweets WHERE author = ? ORDER BY timestamp DESC LIMIT 25;', [author])
+        return jsonify(tweets)
+    except Exception:
+        response = jsonify({"status": "Bad Request" })
+        response.status_code = 400
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
+
+@app.route('/tweets',methods=['POST'])
+def postTweet():
+    try:
+        query_params = request.get_json()
+        text = query_params['text']
+        timestamp = datetime.utcnow()
+        author = query_params['author']
+
+        db = get_db()
+        query_db('INSERT INTO tweets(text,timestamp,author) VALUES (?,?,?);',(text,timestamp,author))
+        db.commit()
+        response = jsonify({"status": "Created" })
+        response.status_code = 201
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
+    except Exception:
+        response = jsonify({"status": "Bad Request" })
+        response.status_code = 400
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response

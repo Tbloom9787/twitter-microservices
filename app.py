@@ -93,7 +93,7 @@ def authenticateUser():
             resp.headers["Content-Type"] = "application/json; charset=utf-8"
             return resp
     except Exception:
-        response = jsonify({"status": "Bad request" })
+        response = jsonify({"status": "Bad Request" })
         response.status_code = 400
         response.headers["Content-Type"] = "application/json; charset=utf-8"
         return response
@@ -128,12 +128,12 @@ def removeFollower():
         db = get_db()
         query_db('DELETE FROM followers WHERE username = ? AND follower = ?',(username,follower))
         db.commit()
-        response = jsonify({"status": "ok" })
+        response = jsonify({"status": "OK" })
         response.status_code = 200
         response.headers["Content-Type"] = "application/json; charset=utf-8"
         return response
     except Exception:
-        response = jsonify({"status": "Bad request" })
+        response = jsonify({"status": "Bad Request" })
         response.status_code = 400
         response.headers["Content-Type"] = "application/json; charset=utf-8"
         return response
