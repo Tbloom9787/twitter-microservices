@@ -68,6 +68,36 @@ def createUser():
         response.headers["Content-Type"] = "application/json; charset=utf-8"
         return response
 
+@app.route('/authenticate', methods=['GET'])
+def authenticateUser():
+    try:
+        query_params = request.get_json()
+        requested_user = query_params['username']
+        requested_pass = query_params['password']
+
+        username = query_db('SELECT * FROM users WHERE username = ?;',(requested_user))
+        hashed_pass = username[0]['password']
+        print(query_params)
+        result = check_password_hash(hashed_pass,requested_pass)
+        print(query_params)
+        if result == True:
+            response = jsonify({"status": "Authorized" })
+            response.status_code = 200
+            response.headers["Content-Type"] = "application/json; charset=utf-8"
+            return response
+
+        else:
+            message = {'message': "Authenticate."}
+            resp = jsonify(message)
+            resp.status_code = 401
+            resp.headers["Content-Type"] = "application/json; charset=utf-8"
+            return resp
+    except Exception:
+        response = jsonify({"status": "Bad request" })
+        response.status_code = 400
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
+
 @app.route('/follow', methods=['POST'])
 def addFollower():
     try:
