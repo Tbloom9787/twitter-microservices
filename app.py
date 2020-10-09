@@ -14,7 +14,7 @@ def make_dicts(cursor, row):
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect('users.db')
+        db = g._database = sqlite3.connect('microservices.db')
         db.row_factory = make_dicts
     return db
 
@@ -37,7 +37,7 @@ def query_db(query, args=(), one=False):
 def init_db():
     with app.app_context():
         db = get_db()
-        with app.open_resource('microservices.sql', mode='r') as f:
+        with app.open_resource('schema.sql', mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
 
@@ -54,15 +54,36 @@ def createUser():
         password = query_params['password']
         password = generate_password_hash(password)
         email = query_params['email']
+
         db = get_db()
         query_db('INSERT INTO users(username,password,email) VALUES (?,?,?);',(username,password,email))
         db.commit()
-        response = jsonify({"status": "created" })
+        response = jsonify({"status": "Created" })
         response.status_code = 201
         response.headers["Content-Type"] = "application/json; charset=utf-8"
         return response
     except Exception:
-        response = jsonify({"status": "Bad request" })
+        response = jsonify({"status": "Bad Request" })
+        response.status_code = 400
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
+
+@app.route('/users/<username>', methods=['POST'])
+def addFollower():
+    try:
+        query_params = request.get_json()
+        username = query_params['username']
+        follower = query_params['follower']
+
+        db = get_db()
+        query_db('INSERT INTO followers(username,follower) VALUES (?,?);',(username,follower))
+        db.commit()
+        response = jsonify({"status": "OK" })
+        response.status_code = 200
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
+    except Exception:
+        response = jsonify({"status": "Bad Request" })
         response.status_code = 400
         response.headers["Content-Type"] = "application/json; charset=utf-8"
         return response
