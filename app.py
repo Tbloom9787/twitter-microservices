@@ -68,7 +68,7 @@ def createUser():
         response.headers["Content-Type"] = "application/json; charset=utf-8"
         return response
 
-@app.route('/users/<username>', methods=['POST'])
+@app.route('/follow', methods=['POST'])
 def addFollower():
     try:
         query_params = request.get_json()
@@ -84,6 +84,26 @@ def addFollower():
         return response
     except Exception:
         response = jsonify({"status": "Bad Request" })
+        response.status_code = 400
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
+
+@app.route('/unfollow', methods=['DELETE'])
+def removeFollower():
+    try:
+        query_params = request.get_json()
+        username = query_params['username']
+        follower = query_params['follower']
+
+        db = get_db()
+        query_db('DELETE FROM followers WHERE username = ? AND follower = ?',(username,follower))
+        db.commit()
+        response = jsonify({"status": "ok" })
+        response.status_code = 200
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
+    except Exception:
+        response = jsonify({"status": "Bad request" })
         response.status_code = 400
         response.headers["Content-Type"] = "application/json; charset=utf-8"
         return response
