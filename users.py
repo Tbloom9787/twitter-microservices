@@ -39,3 +39,8 @@ def init_db():
         with app.open_resource('microservices.sql', mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
+
+@app.route('/users/', methods=['GET'])
+def users_all():
+    all_users = query_db('SELECT * FROM users;')
+    return jsonify(all_users)
