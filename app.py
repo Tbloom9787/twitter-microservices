@@ -57,11 +57,11 @@ def createUser():
         query_params = request.get_json()
         username = query_params['username']
         password = query_params['password']
-        password = generate_password_hash(password)
         email = query_params['email']
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
         db = get_db()
-        query_db('INSERT INTO users(username,password,email) VALUES (?,?,?);',(username,password,email))
+        query_db('INSERT INTO users(username,password,email) VALUES (?,?,?);',(username,hashed_password,email))
         db.commit()
         response = jsonify({"status": "Created" })
         response.status_code = 201
@@ -73,18 +73,17 @@ def createUser():
         response.headers["Content-Type"] = "application/json; charset=utf-8"
         return response
 
-@app.route('/authenticate', methods=['GET'])
+@app.route('/authenticate', methods=['POST'])
 def authenticateUser():
     try:
         query_params = request.get_json()
         requested_user = query_params['username']
         requested_pass = query_params['password']
-
-        username = query_db('SELECT * FROM users WHERE username = ?;',(requested_user))
+ 
+        username = query_db('SELECT password FROM users WHERE username = ?;',(requested_user,))
         hashed_pass = username[0]['password']
-        print(query_params)
+        print(hashed_pass)
         result = check_password_hash(hashed_pass,requested_pass)
-        print(query_params)
         if result == True:
             response = jsonify({"status": "Authorized" })
             response.status_code = 200
@@ -92,7 +91,7 @@ def authenticateUser():
             return response
 
         else:
-            message = {'message': "Authenticate."}
+            message = {'message': "Unauthorized"}
             resp = jsonify(message)
             resp.status_code = 401
             resp.headers["Content-Type"] = "application/json; charset=utf-8"
