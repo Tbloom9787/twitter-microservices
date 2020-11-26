@@ -44,7 +44,7 @@ def create_dm_table(dynamodb=None):
         TableName = 'Messages',
         KeySchema = [
             {
-                'AttributeName': 'message',
+                'AttributeName': 'message_ID',
                 'KeyType': 'HASH'   # Partition key
             },
             {
