@@ -66,13 +66,24 @@ def replyToDirectMessage(messageId, recipient, sender, reply, quick_replies=None
 
 
 def listDirectMessagsFor(message_ID, recipient, dynamodb=None):
-   if not dynamodb:
+    if not dynamodb:
        dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000")
 
     table = dynamodb.Table('Messages')
     
     response = table.get_item(Key={'message_ID': message_ID, 'recipient': recipient})
     
+    return response['Item']
+
+
+def listRepliesTo(message_ID, recipient, dynamodb=None):
+    if not dynamodb:
+       dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000")
+
+    table = dynamodb.Table('Messages')
+
+    response = table.get_item(Key={'message_ID': message_ID, 'recipient': recipient})
+
     return response['Item']
 
 
@@ -89,7 +100,7 @@ if __name__ == "__main__":
 
     if list_messages:
         print("Listed Messages!")
-        
+
 
 
 
