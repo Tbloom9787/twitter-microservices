@@ -32,7 +32,7 @@ def sendDirectMessage(recipient, sender , message, quick_replies=None, dynamodb=
 
     return response
 
-def replyToDirectMessage(messageId, reply, dynamodb=None):
+def replyToDirectMessage(messageId, recipient, sender, reply, dynamodb=None):
     if not dynamodb:
         dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000")
     
@@ -55,8 +55,12 @@ def replyToDirectMessage(messageId, reply, dynamodb=None):
 
 if __name__ == "__main__":
     sent_message = sendDirectMessage("Joe", "Bob", "Testing direct messaging here", 0)
-
-    print("Message Success!")
+    print("Message Sent!")
     json.dumps(sent_message)
+
+    response_message = replyToDirectMessage(571, "Joe", "Bob", "Testing reply to a direct message!")
+    print("Message Replied!")
+    json.dumps(response_message)
+
 
 
