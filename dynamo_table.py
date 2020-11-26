@@ -54,8 +54,8 @@ def create_dm_table(dynamodb=None):
         ],
         AttributeDefinitions = [
             {
-                'AttributeName': 'message',
-                'AttributeType': 'S',
+                'AttributeName': 'message_ID',
+                'AttributeType': 'N',
             },
             {
                 'AttributeName': 'recipient',
