@@ -88,18 +88,19 @@ def listRepliesTo(message_ID, recipient, dynamodb=None):
 
 
 if __name__ == "__main__":
-    #sent_message = sendDirectMessage("Joe", "Bob", "Testing direct messaging here", 0)
-    #print("Message Sent!")
-    #json.dumps(sent_message)
+    sent_message = sendDirectMessage("Joe", "Bob", "Testing direct messaging here", 0)
+    print("Message Sent!")
+    json.dumps(sent_message)
 
-    #response_message = replyToDirectMessage(571, "Joe", "Bob", "Testing reply to a direct message!", 0)
-    #print("Message Replied!")
-    #json.dumps(response_message)
+    response_message = replyToDirectMessage(571, "Joe", "Bob", "Testing reply to a direct message!", 0)
+    print("Message Replied!")
+    json.dumps(response_message)
 
     list_messages = listDirectMessagsFor("Joe", 571)
 
-    if list_messages:
-        print("Listed Messages!")
+    list_replies = listRepliesTo("Joe", 571)
+    
+    print("Listed Replies!")
 
 
 
