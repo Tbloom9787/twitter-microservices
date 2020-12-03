@@ -1,5 +1,4 @@
-from flask import Flask
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify, g, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import sqlite3
@@ -70,7 +69,9 @@ def getUserTimeline():
 def getPublicTimeline():
     try:
         tweets = query_db('SELECT text, author, timestamp FROM tweets ORDER BY timestamp DESC LIMIT 25;')
-        return jsonify(tweets)
+        response = make_response(jsonify(tweets))
+        
+        return response.make_conditional(request)
     except Exception:
         response = jsonify({"status": "Bad Request" })
         response.status_code = 400
