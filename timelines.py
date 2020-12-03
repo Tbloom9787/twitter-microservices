@@ -1,10 +1,20 @@
 from flask import Flask, request, jsonify, g, make_response
+from flask_caching import Cache
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-import sqlite3
+import sqlite3, time
 
 app = Flask(__name__)
 app.config.from_envvar('APP_CONFIG')
+
+config = {
+    "DEBUG": True,
+    "CACHE_TYPE": "simple",
+    "CACHE_DEFAULT_TIMEOUT": 300
+}
+
+app.config.from_mapping(config)
+cache = Cache(app)
 
 def make_dicts(cursor, row):
     return dict((cursor.description[idx][0], value)
@@ -70,7 +80,9 @@ def getPublicTimeline():
     try:
         tweets = query_db('SELECT text, author, timestamp FROM tweets ORDER BY timestamp DESC LIMIT 25;')
         response = make_response(jsonify(tweets))
-        
+        get_time = time.time()
+        date = str(datetime.fromtimestamp(get_time).strftime('%m-%d-%Y %H:%M:%S'))
+        print(date)
         return response.make_conditional(request)
     except Exception:
         response = jsonify({"status": "Bad Request" })
