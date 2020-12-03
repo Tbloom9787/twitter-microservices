@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify, g, make_response
+from flask import Flask, request, jsonify, g, make_response, abort
 from flask_caching import Cache
+from werkzeug.exceptions import default_exceptions, Aborter, HTTPException
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import sqlite3, time
@@ -15,6 +16,13 @@ config = {
 
 app.config.from_mapping(config)
 cache = Cache(app)
+abort = Aborter()
+
+class NotModified(HTTPException):
+    code = 304
+    description = "Page not modified"
+
+default_exceptions[304] = NotModified
 
 def make_dicts(cursor, row):
     return dict((cursor.description[idx][0], value)
@@ -78,11 +86,18 @@ def getUserTimeline():
 @app.route('/publicTimeline',methods=['GET'])
 def getPublicTimeline():
     try:
+        if 'If-Modified-Since' in request.headers:
+            current_time = datetime.strptime(request.headers['If-Modified-Since'], '%a %d %b %Y %H:%M:%S %Z')
+            print(current_time)
+            if (datetime.datetime.now() - current_time).seconds < 3:
+                abort(make_response(jsonify(message='Page not modified'), 340))
+            
         tweets = query_db('SELECT text, author, timestamp FROM tweets ORDER BY timestamp DESC LIMIT 25;')
         response = make_response(jsonify(tweets))
         get_time = time.time()
         date = str(datetime.fromtimestamp(get_time).strftime('%m-%d-%Y %H:%M:%S'))
-        print(date)
+        response.last_modified = datetime.now()
+        
         return response.make_conditional(request)
     except Exception:
         response = jsonify({"status": "Bad Request" })
