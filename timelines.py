@@ -87,9 +87,9 @@ def getUserTimeline():
 def getPublicTimeline():
     try:
         if 'If-Modified-Since' in request.headers:
-            current_time = datetime.strptime(request.headers['If-Modified-Since'], '%a %d %b %Y %H:%M:%S %Z')
-            print(current_time)
-            if (datetime.datetime.now() - current_time).seconds < 3:
+            diff_time = datetime.strptime(request.headers['If-Modified-Since'], '%a %d %b %Y %H:%M:%S %Z')
+            print(diff_time)
+            if (datetime.datetime.now() - diff_time).seconds < 3:
                 abort(make_response(jsonify(message='Page not modified'), 340))
             
         tweets = query_db('SELECT text, author, timestamp FROM tweets ORDER BY timestamp DESC LIMIT 25;')
