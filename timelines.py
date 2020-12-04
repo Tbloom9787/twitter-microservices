@@ -110,8 +110,7 @@ def getHomeTimeline():
     try:
         query_params = request.get_json()
         user = query_params['username']
-
-        tweets = query_db('SELECT text, author, timestamp FROM tweets WHERE author IN (SELECT follower FROM followers WHERE username = ?) ORDER BY timestamp DESC LIMIT 25;', [user])
+        tweets = query_db('SELECT text, author, timestamp FROM tweets INNER JOIN followers ON followers.follower = tweets.author WHERE username = ? ORDER BY timestamp DESC LIMIT 25;', [user])
         return jsonify(tweets)
     except Exception:
         response = jsonify({"status": "Bad Request" })
