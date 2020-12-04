@@ -3,7 +3,7 @@ from flask_caching import Cache
 from werkzeug.exceptions import default_exceptions, Aborter, HTTPException
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-import sqlite3, time
+import sqlite3, time, json
 
 app = Flask(__name__)
 app.config.from_envvar('APP_CONFIG')
@@ -109,8 +109,23 @@ def getHomeTimeline():
     try:
         query_params = request.get_json()
         user = query_params['username']
-        tweets = query_db('SELECT text, author, timestamp FROM tweets INNER JOIN followers ON followers.follower = tweets.author WHERE username = ? ORDER BY timestamp DESC LIMIT 25;', [user])
-        return jsonify(tweets)
+        authors = query_db('SELECT author FROM tweets INNER JOIN followers ON followers.follower = tweets.author WHERE username = ? ORDER BY timestamp DESC LIMIT 25;', [user])
+        
+        author_list = []
+        res = []
+
+        for author in authors:
+            if author['author'] not in author_list:
+                author_list.append(author['author'])
+                current_author = author['author']
+                author_timeline = query_db('SELECT text, timestamp, author FROM tweets WHERE author = ? ORDER BY timestamp DESC LIMIT 25;', [current_author])
+                cache.set(current_author, author_timeline)
+
+        for author in author_list:
+            res.append(cache.get(author))
+        
+        return jsonify(res)
+        
     except Exception:
         response = jsonify({"status": "Bad Request" })
         response.status_code = 400
