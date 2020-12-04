@@ -88,17 +88,16 @@ def getPublicTimeline():
     try:
         if 'If-Modified-Since' in request.headers:
             diff_time = datetime.strptime(request.headers['If-Modified-Since'], '%a %d %b %Y %H:%M:%S %Z')
-            print(diff_time)
             if (datetime.datetime.now() - diff_time).seconds < 3:
-                abort(make_response(jsonify(message='Page not modified'), 340))
-            
-        tweets = query_db('SELECT text, author, timestamp FROM tweets ORDER BY timestamp DESC LIMIT 25;')
-        response = make_response(jsonify(tweets))
-        get_time = time.time()
-        date = str(datetime.fromtimestamp(get_time).strftime('%m-%d-%Y %H:%M:%S'))
-        response.last_modified = datetime.now()
+                abort(make_response(jsonify(message='Page not modified'), 304))
+        else:  
+            tweets = query_db('SELECT text, author, timestamp FROM tweets ORDER BY timestamp DESC LIMIT 25;')
+            response = make_response(jsonify(tweets))
+            get_time = time.time()
+            date = str(datetime.fromtimestamp(get_time).strftime('%m-%d-%Y %H:%M:%S'))
+            response.last_modified = datetime.now()
         
-        return response.make_conditional(request)
+            return response.make_conditional(request)
     except Exception:
         response = jsonify({"status": "Bad Request" })
         response.status_code = 400
